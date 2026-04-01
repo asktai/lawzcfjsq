@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>律师费计算器 V1.0.3_星火版（31省标准）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%); min-height: 100vh; }
+        .court-font { font-family: 'Noto Serif SC', serif; }
+        .mono-font { font-family: 'JetBrains Mono', monospace; }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .spark-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); }
+        .fee-mode-btn { transition: all 0.3s; }
+        .fee-mode-btn.active { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; border-color: transparent; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+        .input-focus:focus { box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); border-color: #3b82f6; }
+        .warning-toast { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-left: 4px solid #f59e0b; }
+        .danger-toast { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-left: 4px solid #dc2626; }
+        .tier-row:nth-child(even) { background: #f8fafc; }
+        .calc-card { transition: all 0.3s ease; }
+        .calc-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+        .tag { display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
+        .tag-blue { background: #dbeafe; color: #1e40af; }
+        .tag-amber { background: #fef3c7; color: #92400e; }
+        .tag-purple { background: #f3e8ff; color: #7c3aed; }
+        .tag-red { background: #fee2e2; color: #991b1b; }
+        .tag-green { background: #dcfce7; color: #166534; }
+        .amount-display { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); }
+        .chinese-amount { font-family: 'Noto Serif SC', serif; letter-spacing: 0.05em; }
+        .stage-item { transition: all 0.2s; }
+        .stage-item:hover { background: #f8fafc; }
+        .stage-item:has(input:checked) { background: #eff6ff; border-color: #3b82f6; }
+    </style>
+<base target="_blank">
+</head>
+<body class="text-slate-800">
+
+    <!-- Header -->
+    <header class="spark-gradient text-white shadow-xl sticky top-0 z-50 border-b border-slate-700">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/20">
+                    <svg class="w-7 h-7 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold court-font tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-white">律师费计算器（31省标准）</h1>
+                    <div class="flex items-center gap-3 mt-1">
+                        <span class="text-xs bg-blue-500/20 text-blue-200 px-2 py-0.5 rounded border border-blue-400/30 font-mono">V1.0.3_星火版</span>
+                        <span class="text-xs text-slate-400">金额大小写双显 | 政府指导价与市场调节价全覆盖</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button onclick="showProhibitionNotice()" class="bg-red-500/20 hover:bg-red-500/30 border border-red-400/30 text-red-200 px-4 py-2 rounded-lg text-sm transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    风险代理禁止清单
+                </button>
+                <button onclick="window.print()" class="bg-white/5 hover:bg-white/10 border border-white/20 px-4 py-2 rounded-lg text-sm transition">打印结果</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-6 max-w-7xl">
+        
+        <!-- Alert Banners -->
+        <div id="prohibitionAlert" class="hidden danger-toast rounded-xl p-4 mb-6 shadow-lg">
+            <div class="flex items-start gap-3">
+                <svg class="w-6 h-6 text-red-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div class="flex-1">
+                    <h3 class="font-bold text-red-900 text-sm mb-1">⚠️ 禁止风险代理自动拦截</h3>
+                    <p class="text-sm text-red-800 leading-relaxed">根据《律师服务收费管理办法》第十一条、第十二条，<strong id="prohibitionReason">婚姻、继承案件</strong>等类型<strong>严禁实行风险代理收费</strong>。系统已自动切换为固定收费模式。</p>
+                    <div class="mt-2 text-xs text-red-700 bg-red-100/50 p-2 rounded">涉及财产关系的此类案件，律师费最高不得超过标的额的<span class="font-bold">10%</span>（非风险代理）。</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left: Configuration -->
+            <div class="lg:col-span-4 space-y-4">
+                
+                <!-- Province & Case Type -->
+                <div class="glass-panel rounded-2xl p-5 border border-slate-200">
+                    <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2 court-font"><span class="w-7 h-7 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-bold">1</span>地区与案件</h3>
+                    
+                    <!-- Province -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">省份（31省标准）</label>
+                        <select id="provinceSelect" class="input-focus w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-sm font-medium" onchange="changeProvince()">
+                            <option value="beijing">北京市（市场调节价为主）</option>
+                            <option value="shanghai">上海市（市场调节价）</option>
+                            <option value="guangdong">广东省（政府指导价）</option>
+                            <option value="jiangsu">江苏省（政府指导价）</option>
+                            <option value="zhejiang">浙江省（政府指导价）</option>
+                            <option value="shandong">山东省（基础费+分段）</option>
+                            <option value="fujian">福建省（特殊：10万内免收分段）</option>
+                            <option value="henan">河南省（风险递减：18%→6%）</option>
+                            <option value="sichuan">四川省（风险封顶10万）</option>
+                            <option value="hubei">湖北省（政府指导价）</option>
+                            <option value="hunan">湖南省（政府指导价）</option>
+                            <option value="hebei">河北省（政府指导价）</option>
+                            <option value="anhui">安徽省（政府指导价）</option>
+                            <option value="shaanxi">陕西省（政府指导价）</option>
+                            <option value="chongqing">重庆市（政府指导价）</option>
+                            <option value="liaoning">辽宁省（政府指导价）</option>
+                            <option value="tianjin">天津市（政府指导价）</option>
+                            <option value="shanxi">山西省（政府指导价）</option>
+                            <option value="jiangxi">江西省（政府指导价）</option>
+                            <option value="guangxi">广西壮族自治区（政府指导价）</option>
+                            <option value="yunnan">云南省（政府指导价）</option>
+                            <option value="guizhou">贵州省（政府指导价）</option>
+                            <option value="jilin">吉林省（政府指导价）</option>
+                            <option value="gansu">甘肃省（政府指导价）</option>
+                            <option value="hainan">海南省（政府指导价）</option>
+                            <option value="heilongjiang">黑龙江省（政府指导价）</option>
+                            <option value="neimenggu">内蒙古自治区（政府指导价）</option>
+                            <option value="xinjiang">新疆维吾尔自治区（政府指导价）</option>
+                            <option value="ningxia">宁夏回族自治区（政府指导价）</option>
+                            <option value="qinghai">青海省（政府指导价）</option>
+                            <option value="xizang">西藏自治区（政府指导价）</option>
+                        </select>
+                        <div id="marketNotice" class="hidden mt-2 text-xs text-amber-700 bg-amber-50 p-2 rounded border border-amber-200">
+                            <span class="font-bold">提示：</span>该地区实行<strong>市场调节价</strong>，计算结果为国家参考标准，实际收费以律所公示为准。
+                        </div>
+                    </div>
+
+                    <!-- Cascade Case Type -->
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">案件大类</label>
+                            <select id="caseCategory" class="input-focus w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white" onchange="updateCaseType()">
+                                <option value="civil">民事案件</option>
+                                <option value="criminal">刑事案件</option>
+                                <option value="admin">行政案件</option>
+                                <option value="state">国家赔偿案件</option>
+                                <option value="arbitration">仲裁案件</option>
+                                <option value="nonlitigation">非诉业务（法律顾问/专项）</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">具体类型（小类）</label>
+                            <select id="caseSubType" class="input-focus w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white" onchange="checkProhibition()">
+                                <!-- Populated by JS -->
+                            </select>
+                        </div>
+                        <div id="propertySection" class="hidden">
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">标的额（元）</label>
+                            <div class="relative">
+                                <input type="number" id="caseAmount" class="input-focus w-full px-4 py-3 rounded-xl border border-slate-300 text-lg mono-font font-medium" placeholder="0" min="0" step="1" oninput="calculate()">
+                                <span class="absolute right-4 top-3.5 text-slate-400 text-sm font-medium">元</span>
+                            </div>
+                            <div id="fujianNotice" class="hidden mt-2 text-xs text-emerald-700 bg-emerald-50 p-2 rounded border border-emerald-200">
+                                <span class="font-bold">福建特殊规则：</span>标的额100000元以内<strong>免收分段费用</strong>，直接按件收取800-6000元。
+                            </div>
+                            <div id="shandongNotice" class="hidden mt-2 text-xs text-blue-700 bg-blue-50 p-2 rounded border border-blue-200">
+                                <span class="font-bold">山东特殊规则：</span>基础费2500-3000元 + 分段累进。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fee Mode -->
+                <div class="glass-panel rounded-2xl p-5 border border-slate-200">
+                    <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2 court-font"><span class="w-7 h-7 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-bold">2</span>计费方式</h3>
+                    
+                    <div class="grid grid-cols-5 gap-2 mb-4">
+                        <button onclick="setFeeMode('piece')" id="btnPiece" class="fee-mode-btn active py-2 px-1 rounded-lg border border-slate-200 text-xs font-medium text-center bg-white hover:border-blue-300">计件</button>
+                        <button onclick="setFeeMode('target')" id="btnTarget" class="fee-mode-btn py-2 px-1 rounded-lg border border-slate-200 text-xs font-medium text-center text-slate-600 bg-white hover:border-blue-300">按标的</button>
+                        <button onclick="setFeeMode('time')" id="btnTime" class="fee-mode-btn py-2 px-1 rounded-lg border border-slate-200 text-xs font-medium text-center text-slate-600 bg-white hover:border-blue-300">计时</button>
+                        <button onclick="setFeeMode('risk')" id="btnRisk" class="fee-mode-btn py-2 px-1 rounded-lg border border-slate-200 text-xs font-medium text-center text-slate-600 bg-white hover:border-blue-300">风险</button>
+                        <button onclick="setFeeMode('mixed')" id="btnMixed" class="fee-mode-btn py-2 px-1 rounded-lg border border-slate-200 text-xs font-medium text-center text-slate-600 bg-white hover:border-blue-300">混合</button>
+                    </div>
+
+                    <!-- Dynamic Inputs -->
+                    <div id="targetInput" class="hidden mb-4">
+                        <div id="baseFeeSection" class="mb-3">
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">基础费（元）<span class="text-xs font-normal text-slate-500 ml-1">（不填默认为最低标准）</span></label>
+                            <input type="number" id="baseFeeInput" class="input-focus w-full px-3 py-2 rounded-xl border border-slate-300 text-sm mono-font" placeholder="自动计算" oninput="calculate()">
+                        </div>
+                    </div>
+
+                    <div id="timeInput" class="hidden mb-4">
+                        <div class="mb-3">
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">律师级别</label>
+                            <select id="lawyerLevel" class="input-focus w-full px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white" onchange="calculate()">
+                                <option value="junior">初级律师</option>
+                                <option value="intermediate" selected>中级律师</option>
+                                <option value="senior">高级律师</option>
+                                <option value="expert">专家/合伙人</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">工作时长（小时）</label>
+                            <input type="number" id="workHours" class="input-focus w-full px-3 py-2 rounded-xl border border-slate-300 text-sm mono-font" placeholder="0" min="0" step="0.5" oninput="calculate()">
+                        </div>
+                        <div class="bg-slate-50 rounded-lg p-2 text-xs text-slate-600 space-y-1">
+                            <div class="flex justify-between"><span>查阅案卷</span><span class="font-medium">5小时/次</span></div>
+                            <div class="flex justify-between"><span>会见当事人</span><span class="font-medium">4小时/次</span></div>
+                            <div class="flex justify-between"><span>庭前准备</span><span class="font-medium">8-10小时/案</span></div>
+                            <div class="flex justify-between"><span>出庭</span><span class="font-medium">4小时起</span></div>
+                        </div>
+                    </div>
+
+                    <div id="riskInput" class="hidden mb-4 space-y-3">
+                        <div class="bg-amber-50 rounded-lg p-3 border border-amber-200">
+                            <label class="block text-sm font-semibold text-amber-900 mb-2">风险代理设置</label>
+                            <select id="riskType" class="w-full px-3 py-2 rounded-lg border border-amber-300 bg-white text-sm mb-2" onchange="updateRiskInput()">
+                                <option value="prepost">固定+风险（基础费+回款比例）</option>
+                                <option value="pure">纯风险（无前期费用）</option>
+                                <option value="capped">封顶风险（最高不超过标的30%）</option>
+                            </select>
+                            
+                            <div id="prepostRiskSettings" class="space-y-2">
+                                <div class="flex gap-2">
+                                    <div class="flex-1">
+                                        <label class="text-xs text-amber-800">基础费比例(%)</label>
+                                        <input type="number" id="baseFeePercent" value="10" class="w-full px-2 py-1 rounded border border-amber-300 text-sm" oninput="calculate()">
+                                    </div>
+                                    <div class="flex-1">
+                                        <label class="text-xs text-amber-800">回款比例(%)</label>
+                                        <input type="number" id="successFeePercent" value="15" class="w-full px-2 py-1 rounded border border-amber-300 text-sm" oninput="calculate()">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="pureRiskSettings" class="hidden space-y-2">
+                                <div>
+                                    <label class="text-xs text-amber-800">风险代理费率(%)</label>
+                                    <input type="number" id="pureRiskRate" value="18" max="30" class="w-full px-2 py-1 rounded border border-amber-300 text-sm" oninput="calculate()">
+                                </div>
+                            </div>
+                            
+                            <div id="henanNotice" class="hidden mt-2 text-xs text-amber-800 bg-amber-100/50 p-2 rounded">
+                                <span class="font-bold">河南特殊规则：</span>风险代理分段递减：100万以下≤18%，100-500万≤15%，500-1000万≤12%，1000-5000万≤9%，5000万以上≤6%。
+                            </div>
+                            <div id="sichuanNotice" class="hidden mt-2 text-xs text-amber-800 bg-amber-100/50 p-2 rounded">
+                                <span class="font-bold">四川特殊规则：</span>涉及财产案件风险代理最高不超过<strong>10万元</strong>。
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stages Selection - Ordered: 一审、二审、再审、执行、反诉、仲裁 -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold text-slate-700 mb-3">委托阶段（可多选）</label>
+                        <div class="space-y-2">
+                            <!-- 1. 一审/侦查/审查起诉 -->
+                            <label class="stage-item flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-white cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <input type="checkbox" id="stageFirst" class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500" checked onchange="calculate()">
+                                    <div>
+                                        <span class="font-medium text-slate-700 text-sm block">一审</span>
+                                        <span class="text-xs text-slate-500">侦查 / 审查起诉</span>
+                                    </div>
+                                </div>
+                                <span class="tag tag-blue">基准 1.0</span>
+                            </label>
+
+                            <!-- 2. 二审 -->
+                            <label class="stage-item flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-white cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <input type="checkbox" id="stageSecond" class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500" onchange="calculate()">
+                                    <span class="font-medium text-slate-700 text-sm">二审</span>
+                                </div>
+                                <span class="tag tag-amber">曾代理一审则减半</span>
+                            </label>
+
+                            <!-- 3. 再审 -->
+                            <label class="stage-item flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-white cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <input type="checkbox" id="stageRetrial" class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500" onchange="calculate()">
+                                    <span class="font-medium text-slate-700 text-sm">再审</span>
+                                </div>
+                                <span class="tag tag-blue">0.5</span>
+                            </label>
+
+                            <!-- 4. 执行 -->
+                            <label class="stage-item flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-white cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <input type="checkbox" id="stageExecution" class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500" onchange="calculate()">
+                                    <span class="font-medium text-slate-700 text-sm">执行</span>
+                                </div>
+                                <span class="tag tag-blue">0.5-1.0</span>
+                            </label>
+
+                            <!-- 5. 反诉 -->
+                            <label class="stage-item flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-white cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <input type="checkbox" id="stageCounterclaim" class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500" onchange="calculate()">
+                                    <span class="font-medium text-slate-700 text-sm">反诉</span>
+                                </div>
+                                <span class="tag tag-purple">与本诉合并</span>
+                            </label>
+
+                            <!-- 6. 仲裁 -->
+                            <label class="stage-item flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-white cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <input type="checkbox" id="stageArbitration" class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500" onchange="calculate()">
+                                    <span class="font-medium text-slate-700 text-sm">仲裁</span>
+                                </div>
+                                <span class="tag tag-green">按仲裁委标准</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Complex Options -->
+                    <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-3">
+                        <div>
+                            <label class="flex items-center justify-between cursor-pointer">
+                                <span class="font-semibold text-sm text-slate-700">重大疑难复杂案件</span>
+                                <input type="checkbox" id="isComplex" class="w-4 h-4 text-blue-600 rounded" onchange="toggleComplexity()">
+                            </label>
+                            <p class="text-xs text-slate-500 mt-1">勾选后费用可上浮1-5倍（福建等省明确规定）</p>
+                        </div>
+                        <div id="complexitySlider" class="hidden">
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">上浮倍数：<span id="complexityValue" class="text-blue-700">1.5</span>倍</label>
+                            <input type="range" id="complexityMultiplier" min="1" max="5" step="0.5" value="1.5" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer" oninput="updateComplexity(this.value); calculate()">
+                            <div class="flex justify-between text-xs text-slate-400 mt-1"><span>1倍</span><span>3倍</span><span>5倍</span></div>
+                        </div>
+                        
+                        <div>
+                            <label class="flex items-center justify-between cursor-pointer">
+                                <span class="font-semibold text-sm text-slate-700">多阶段打包优惠</span>
+                                <input type="checkbox" id="packageDiscount" class="w-4 h-4 text-emerald-600 rounded" onchange="calculate()">
+                            </label>
+                            <p class="text-xs text-slate-500 mt-1">同时委托多个阶段可享20-40%优惠</p>
+                        </div>
+                    </div>
+
+                    <button onclick="calculate()" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition mt-4 flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        计算律师费
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right: Results -->
+            <div class="lg:col-span-8">
+                <div id="emptyState" class="glass-panel rounded-2xl p-12 text-center border border-slate-200 h-full flex flex-col justify-center items-center min-h-[600px]">
+                    <div class="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-6 relative">
+                        <svg class="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+                        <div class="absolute -bottom-1 -right-1 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center border-4 border-white"><span class="text-white text-xs font-bold">31</span></div>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-700 mb-2 court-font">律师费计算器</h3>
+                    <p class="text-slate-500 max-w-md mb-4">支持31省收费标准，金额大小写双显示，自动识别禁止风险代理案件类型，支持二审减半、反诉合并、多阶段打包计算。</p>
+                    <div class="flex gap-2 flex-wrap justify-center">
+                        <span class="tag tag-blue">计件收费</span><span class="tag tag-blue">按标的收费</span><span class="tag tag-blue">计时收费</span>
+                        <span class="tag tag-amber">风险代理</span><span class="tag tag-green">混合收费</span><span class="tag tag-red">金额大写</span>
+                    </div>
+                </div>
+
+                <div id="resultPanel" class="hidden space-y-4">
+                    
+                    <!-- Main Amount Display (Dual: Arabic + Chinese) -->
+                    <div class="amount-display rounded-2xl p-8 text-white shadow-xl border border-slate-700">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="text-lg font-bold court-font text-blue-200">律师费合计</h3>
+                                <p class="text-xs text-slate-400 mt-1">含税金额 · 政府指导价范围内</p>
+                            </div>
+                            <div id="feeModeTag" class="px-4 py-1.5 bg-white/10 rounded-full text-sm font-medium border border-white/20">按标的额比例收费</div>
+                        </div>
+                        
+                        <!-- Arabic Numerals -->
+                        <div class="mb-4">
+                            <div class="text-sm text-slate-400 mb-1">阿拉伯数字金额（元）</div>
+                            <div class="text-5xl font-bold mono-font tracking-tight text-white" id="totalFeeArabic">¥0.00</div>
+                        </div>
+                        
+                        <!-- Chinese Uppercase -->
+                        <div class="pt-4 border-t border-white/20">
+                            <div class="text-sm text-slate-400 mb-2 flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                中文大写金额（人民币）
+                            </div>
+                            <div class="text-2xl chinese-amount text-emerald-300 font-bold leading-relaxed" id="totalFeeChinese">零圆整</div>
+                        </div>
+
+                        <!-- Range Display -->
+                        <div class="mt-6 pt-4 border-t border-white/20 grid grid-cols-3 gap-4 text-sm">
+                            <div>
+                                <div class="text-slate-400 text-xs mb-1">最低收费保障</div>
+                                <div class="font-semibold mono-font" id="minFeeDisplay">¥3,000</div>
+                            </div>
+                            <div>
+                                <div class="text-slate-400 text-xs mb-1">政府指导价上限</div>
+                                <div class="font-semibold mono-font text-amber-300" id="maxFeeDisplay">不设上限</div>
+                            </div>
+                            <div>
+                                <div class="text-slate-400 text-xs mb-1">阶段系数调整</div>
+                                <div class="font-semibold mono-font text-emerald-300" id="stageMultiplierDisplay">1.0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fee Breakdown -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="calc-card glass-panel rounded-xl p-5 border border-slate-200 bg-white">
+                            <h4 class="font-bold text-slate-800 mb-3 flex items-center gap-2 text-sm">
+                                <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs">1</span>
+                                基础费用构成
+                            </h4>
+                            <div class="space-y-2 text-sm" id="baseFeeBreakdown">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                        
+                        <div class="calc-card glass-panel rounded-xl p-5 border border-slate-200 bg-white">
+                            <h4 class="font-bold text-slate-800 mb-3 flex items-center gap-2 text-sm">
+                                <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs">2</span>
+                                阶段费用明细
+                            </h4>
+                            <div class="space-y-2 text-sm" id="stageFeeBreakdown">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Calculation Table -->
+                    <div class="glass-panel rounded-xl p-6 border border-slate-200">
+                        <h4 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                            分段计算明细
+                        </h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-200">
+                                        <th class="text-left py-3 px-4 font-semibold text-slate-700">计算项目</th>
+                                        <th class="text-right py-3 px-4 font-semibold text-slate-700">计算公式/标准</th>
+                                        <th class="text-right py-3 px-4 font-semibold text-slate-700">金额（小写）</th>
+                                        <th class="text-right py-3 px-4 font-semibold text-slate-700">金额（大写）</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100" id="calculationTable">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Special Rules & Compliance -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="glass-panel rounded-xl p-5 border border-slate-200 bg-blue-50/50">
+                            <h4 class="font-bold text-slate-800 mb-3 text-sm flex items-center gap-2">
+                                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                本省特殊规则适用
+                            </h4>
+                            <ul class="text-xs text-slate-600 space-y-1.5 list-disc list-inside" id="specialRulesList">
+                                <!-- Populated by JS -->
+                            </ul>
+                        </div>
+                        
+                        <div class="glass-panel rounded-xl p-5 border border-slate-200 bg-emerald-50/50">
+                            <h4 class="font-bold text-slate-800 mb-3 text-sm flex items-center gap-2">
+                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                合规性检查
+                            </h4>
+                            <div id="complianceCheck" class="text-sm text-emerald-800">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                                    <span>计算结果符合政府指导价范围</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                                    <span>已满足最低收费保障要求</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Disclaimer -->
+                    <div class="text-xs text-slate-500 text-center pt-4 border-t border-slate-200">
+                        <p>本计算器结果仅供参考，实际收费以委托代理合同约定为准。涉及财产关系的婚姻、继承案件律师费最高不得超过标的额的10%。</p>
+                        <p class="mt-1">法规依据：《律师服务收费管理办法》（发改价格〔2006〕611号）、《国家发展改革委关于放开部分服务价格意见的通知》（发改价格〔2014〕2755号）</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global State
+        let currentMode = 'piece';
+        let currentProvince = 'beijing';
+        let isProhibited = false;
+        let subTypes = {
+            civil: [
+                {value: 'contract', label: '合同纠纷（可风险代理）', risk: 'allowed', property: true},
+                {value: 'tort', label: '侵权纠纷（可风险代理）', risk: 'allowed', property: true},
+                {value: 'marriage', label: '婚姻家庭纠纷（禁风险代理）', risk: 'prohibited', property: true, special: 'max10percent'},
+                {value: 'labor', label: '劳动争议（禁风险代理）', risk: 'prohibited', property: true, special: 'max10percent'},
+                {value: 'ip', label: '知识产权（可风险代理）', risk: 'allowed', property: true},
+                {value: 'construction', label: '建设工程（可风险代理）', risk: 'allowed', property: true},
+                {value: 'finance', label: '金融证券（可风险代理）', risk: 'allowed', property: true},
+                {value: 'civil_other', label: '其他民事纠纷', risk: 'allowed', property: false}
+            ],
+            criminal: [
+                {value: 'investigation', label: '侦查阶段', risk: 'prohibited', property: false},
+                {value: 'prosecution', label: '审查起诉阶段', risk: 'prohibited', property: false},
+                {value: 'trial', label: '审判阶段', risk: 'prohibited', property: false},
+                {value: 'second', label: '二审阶段', risk: 'prohibited', property: false},
+                {value: 'retrial', label: '再审阶段', risk: 'prohibited', property: false}
+            ],
+            admin: [{value: 'admin_first', label: '行政诉讼一审', risk: 'prohibited', property: false}],
+            state: [{value: 'state_compensation', label: '国家赔偿', risk: 'prohibited', property: false}],
+            arbitration: [{value: 'arb_commercial', label: '商事仲裁', risk: 'allowed', property: true}],
+            nonlitigation: [
+                {value: 'legal_counsel', label: '常年法律顾问', risk: 'allowed', property: false},
+                {value: 'special_project', label: '专项法律服务', risk: 'allowed', property: true}
+            ]
+        };
+
+        // Province Standards with Special Rules
+        const provinceStandards = {
+            beijing: { name: '北京市', type: 'market', minFee: 3000, maxFee: null, piece: {min: 3000, max: 15000, standard: 8000}, 
+                targetRates: [{limit: 10, rate: 0.10}, {limit: 100, rate: 0.06}, {limit: 1000, rate: 0.04}, {limit: 5000, rate: 0.02}, {limit: Infinity, rate: 0.01}],
+                time: {min: 200, max: 3000, junior: 1000, intermediate: 2000, senior: 3000}, riskMax: 0.30,
+                rules: ['实行市场调节价，政府参考标准为上述区间', '风险代理最高不超过30%', '标的额超过1000万元部分，费率可协商'] },
+            
+            shanghai: { name: '上海市', type: 'market', minFee: 3000, maxFee: null, piece: {min: 3000, max: 12000, standard: 6000}, 
+                targetRates: [{limit: 10, rate: 0.08}, {limit: 100, rate: 0.05}, {limit: 1000, rate: 0.03}, {limit: 10000, rate: 0.01}, {limit: Infinity, rate: 0.005}],
+                time: {min: 600, max: 4000, junior: 1200, intermediate: 2500, senior: 4000}, riskMax: 0.18,
+                rules: ['实行市场调节价', '标的额10万元以下不足3000元按3000元计', '风险代理最高18%'] },
+            
+            fujian: { name: '福建省', type: 'guidance', minFee: 1000, maxFee: 8000, piece: {min: 1000, max: 8000, standard: 4000}, 
+                targetRates: [{limit: 10, rate: 0, special: 'exempt'}, {limit: 100, rate: 0.08}, {limit: 500, rate: 0.06}, {limit: Infinity, rate: 0.04}],
+                time: {min: 60, max: 1200, junior: 200, intermediate: 500, senior: 1200}, riskMax: 0.18,
+                rules: ['特殊规则：标的额100000元以内免收分段费用，直接按件收取', '涉及财产案件基础费1000-8000元+分段累进', '重大疑难案件可上浮1-5倍'] },
+            
+            shandong: { name: '山东省', type: 'guidance', minFee: 2500, maxFee: null, piece: {min: 2500, max: 8000, standard: 3000}, 
+                targetRates: [{limit: 10, rate: 0.08}, {limit: 100, rate: 0.05}, {limit: 1000, rate: 0.03}, {limit: Infinity, rate: 0.01}],
+                time: {min: 300, max: 2000, junior: 600, intermediate: 1200, senior: 2000}, riskMax: 0.18,
+                rules: ['特殊规则：基础费2500-3000元+分段累进', '青岛、烟台可适用特别标准'] },
+            
+            henan: { name: '河南省', type: 'guidance', minFee: 2000, maxFee: null, piece: {min: 2000, max: 10000, standard: 5000}, 
+                targetRates: [{limit: 10, rate: 0.08}, {limit: 100, rate: 0.06}, {limit: 500, rate: 0.04}, {limit: Infinity, rate: 0.02}],
+                time: {min: 200, max: 2000, junior: 500, intermediate: 1000, senior: 2000}, riskMax: 0.18,
+                riskDecrease: [{limit: 100, rate: 0.18}, {limit: 500, rate: 0.15}, {limit: 1000, rate: 0.12}, {limit: 5000, rate: 0.09}, {limit: Infinity, rate: 0.06}],
+                rules: ['特殊规则：风险代理分段递减', '100万以下≤18%，100-500万≤15%，500-1000万≤12%，1000-5000万≤9%，5000万以上≤6%'] },
+            
+            sichuan: { name: '四川省', type: 'guidance', minFee: 2000, maxFee: 100000, piece: {min: 2000, max: 10000, standard: 5000}, 
+                targetRates: [{limit: 10, rate: 0.08}, {limit: 100, rate: 0.06}, {limit: 1000, rate: 0.04}, {limit: Infinity, rate: 0.02}],
+                time: {min: 200, max: 1500, junior: 500, intermediate: 1000, senior: 1500}, riskMax: 0.18,
+                rules: ['特殊规则：涉及财产案件风险代理最高不超过10万元', '计时收费200-1500元/小时'] },
+            
+            // Default for other provinces
+            default: { name: '全国通用', type: 'guidance', minFee: 3000, maxFee: null, piece: {min: 3000, max: 10000, standard: 5000}, 
+                targetRates: [{limit: 10, rate: 0.10}, {limit: 100, rate: 0.06}, {limit: 1000, rate: 0.04}, {limit: Infinity, rate: 0.02}],
+                time: {min: 500, max: 3000, junior: 1000, intermediate: 2000, senior: 3000}, riskMax: 0.18,
+                rules: ['实行政府指导价', '风险代理最高不超过18%'] }
+        };
+
+        // Fill other provinces with default values
+        const otherProvinces = ['guangdong', 'jiangsu', 'zhejiang', 'hubei', 'hunan', 'hebei', 'anhui', 'shaanxi', 'chongqing', 'liaoning', 'tianjin', 'shanxi', 'jiangxi', 'guangxi', 'yunnan', 'guizhou', 'jilin', 'gansu', 'hainan', 'heilongjiang', 'neimenggu', 'xinjiang', 'ningxia', 'qinghai', 'xizang'];
+        otherProvinces.forEach(prov => {
+            if(!provinceStandards[prov]) provinceStandards[prov] = {...provinceStandards.default, name: document.querySelector(`option[value="${prov}"]`)?.text.split('（')[0] || prov};
+        });
+
+        // Number to Chinese Uppercase Conversion
+        function numberToChinese(num) {
+            if(num === 0) return '零圆整';
+            
+            const units = ['', '拾', '佰', '仟'];
+            const bigUnits = ['', '万', '亿', '万亿'];
+            const nums = ['零', '壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖'];
+            
+            let str = Math.floor(num).toString();
+            let result = '';
+            let zeroFlag = false;
+            let partIndex = 0;
+            
+            while(str.length > 0) {
+                let part = str.slice(-4);
+                str = str.slice(0, -4);
+                
+                let partStr = '';
+                let zeroCount = 0;
+                
+                for(let i = 0; i < part.length; i++) {
+                    let n = parseInt(part[part.length - 1 - i]);
+                    if(n === 0) {
+                        zeroCount++;
+                        if(!zeroFlag && i > 0 && partIndex === 0) {
+                            partStr = nums[0] + partStr;
+                            zeroFlag = true;
+                        }
+                    } else {
+                        zeroFlag = false;
+                        if(zeroCount > 0) {
+                            partStr = nums[0] + partStr;
+                            zeroCount = 0;
+                        }
+                        partStr = nums[n] + units[i] + partStr;
+                    }
+                }
+                
+                if(partStr !== '' || partIndex === 0) {
+                    if(partStr === '') partStr = nums[0];
+                    result = partStr + bigUnits[partIndex] + result;
+                }
+                partIndex++;
+            }
+            
+            result = result.replace(/零+/g, '零').replace(/零$/, '').replace(/^零/, '');
+            
+            return result + '圆整';
+        }
+
+        function updateCaseType() {
+            const category = document.getElementById('caseCategory').value;
+            const subSelect = document.getElementById('caseSubType');
+            const propertySection = document.getElementById('propertySection');
+            
+            subSelect.innerHTML = '';
+            subTypes[category].forEach(type => {
+                const option = document.createElement('option');
+                option.value = type.value;
+                option.textContent = type.label;
+                option.dataset.risk = type.risk;
+                option.dataset.property = type.property;
+                option.dataset.special = type.special || '';
+                subSelect.appendChild(option);
+            });
+            
+            const hasProperty = subTypes[category].some(t => t.property);
+            if(hasProperty) {
+                propertySection.classList.remove('hidden');
+            } else {
+                propertySection.classList.add('hidden');
+            }
+            
+            checkProhibition();
+        }
+
+        function changeProvince() {
+            currentProvince = document.getElementById('provinceSelect').value;
+            const standard = provinceStandards[currentProvince] || provinceStandards.default;
+            
+            const marketNotice = document.getElementById('marketNotice');
+            if(standard.type === 'market') {
+                marketNotice.classList.remove('hidden');
+            } else {
+                marketNotice.classList.add('hidden');
+            }
+            
+            document.getElementById('fujianNotice').classList.toggle('hidden', currentProvince !== 'fujian');
+            document.getElementById('shandongNotice').classList.toggle('hidden', currentProvince !== 'shandong');
+            document.getElementById('henanNotice').classList.toggle('hidden', currentProvince !== 'henan' || currentMode !== 'risk');
+            document.getElementById('sichuanNotice').classList.toggle('hidden', currentProvince !== 'sichuan' || currentMode !== 'risk');
+            
+            calculate();
+        }
+
+        function checkProhibition() {
+            const subType = document.getElementById('caseSubType');
+            const selected = subType.options[subType.selectedIndex];
+            const risk = selected?.dataset.risk || 'allowed';
+            const alertDiv = document.getElementById('prohibitionAlert');
+            const reasonSpan = document.getElementById('prohibitionReason');
+            
+            const reasons = {marriage: '婚姻、继承案件', labor: '劳动报酬、工伤赔偿案件', criminal: '刑事案件', admin: '行政诉讼、国家赔偿案件'};
+            const val = subType.value;
+            
+            isProhibited = (risk === 'prohibited');
+            
+            if(isProhibited) {
+                alertDiv.classList.remove('hidden');
+                reasonSpan.textContent = reasons[val] || '该类型案件';
+                
+                if(currentMode === 'risk' || currentMode === 'mixed') {
+                    setFeeMode('piece');
+                }
+                
+                document.getElementById('btnRisk').disabled = true;
+                document.getElementById('btnMixed').disabled = true;
+                document.getElementById('btnRisk').classList.add('opacity-50', 'cursor-not-allowed');
+                document.getElementById('btnMixed').classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                alertDiv.classList.add('hidden');
+                document.getElementById('btnRisk').disabled = false;
+                document.getElementById('btnMixed').disabled = false;
+                document.getElementById('btnRisk').classList.remove('opacity-50', 'cursor-not-allowed');
+                document.getElementById('btnMixed').classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function setFeeMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.fee-mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('text-slate-600', 'bg-white');
+            });
+            document.getElementById('btn' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active');
+            document.getElementById('btn' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.remove('text-slate-600', 'bg-white');
+            
+            document.getElementById('targetInput').classList.toggle('hidden', mode !== 'target' && mode !== 'mixed');
+            document.getElementById('timeInput').classList.toggle('hidden', mode !== 'time' && mode !== 'mixed');
+            document.getElementById('riskInput').classList.toggle('hidden', mode !== 'risk' && mode !== 'mixed');
+            
+            if(isProhibited && (mode === 'risk' || mode === 'mixed')) {
+                showToast('该案件类型禁止风险代理！', 'error');
+                setFeeMode('piece');
+                return;
+            }
+            
+            changeProvince();
+            calculate();
+        }
+
+        function updateRiskInput() {
+            const type = document.getElementById('riskType').value;
+            document.getElementById('prepostRiskSettings').classList.toggle('hidden', type !== 'prepost');
+            document.getElementById('pureRiskSettings').classList.toggle('hidden', type !== 'pure');
+            calculate();
+        }
+
+        function toggleComplexity() {
+            const isChecked = document.getElementById('isComplex').checked;
+            document.getElementById('complexitySlider').classList.toggle('hidden', !isChecked);
+            if(isChecked) calculate();
+        }
+
+        function updateComplexity(val) {
+            document.getElementById('complexityValue').textContent = val;
+        }
+
+        function calculate() {
+            const standard = provinceStandards[currentProvince] || provinceStandards.default;
+            const amountYuan = parseFloat(document.getElementById('caseAmount').value) || 0;
+            const amount = amountYuan / 10000; // 输入为元，转换为万元用于计算
+            
+            const complexity = document.getElementById('isComplex').checked ? parseFloat(document.getElementById('complexityMultiplier').value) : 1;
+            
+            // Stages: 一审、二审、再审、执行、反诉、仲裁
+            const stages = {
+                first: document.getElementById('stageFirst').checked,
+                second: document.getElementById('stageSecond').checked,
+                retrial: document.getElementById('stageRetrial').checked,
+                execution: document.getElementById('stageExecution').checked,
+                counterclaim: document.getElementById('stageCounterclaim').checked,
+                arbitration: document.getElementById('stageArbitration').checked
+            };
+            
+            let baseFee = 0;
+            let riskFee = 0;
+            let calculationDetails = [];
+            let specialRules = [...standard.rules];
+            
+            // Calculate based on mode
+            if(currentMode === 'piece') {
+                baseFee = standard.piece.standard;
+                calculationDetails.push({item: '计件收费基准', formula: `标准值 ${standard.piece.standard}元`, small: baseFee, note: `区间：${standard.piece.min}-${standard.piece.max}元`});
+            } 
+            else if(currentMode === 'target') {
+                const baseFeeInput = document.getElementById('baseFeeInput').value;
+                
+                if(currentProvince === 'fujian' && amountYuan <= 100000) {
+                    baseFee = baseFeeInput ? parseFloat(baseFeeInput) : 4000;
+                    calculationDetails.push({item: '福建特殊规则（10万以内）', formula: '基础费（免收分段）', small: baseFee, note: '直接按件收取'});
+                    specialRules.push('已适用：标的额100000元以内免收分段费用');
+                } 
+                else if(currentProvince === 'shandong') {
+                    const base = baseFeeInput ? parseFloat(baseFeeInput) : 2750;
+                    const tiered = calculateTiered(amountYuan, standard.targetRates);
+                    baseFee = base + tiered;
+                    calculationDetails.push({item: '山东基础费', formula: `${base}元`, small: base});
+                    calculationDetails.push({item: '分段累进费', formula: `分段计算`, small: tiered});
+                }
+                else {
+                    baseFee = calculateTiered(amountYuan, standard.targetRates);
+                    
+                    if(currentProvince === 'shanghai' && amountYuan <= 100000 && baseFee < 3000) {
+                        baseFee = 3000;
+                        calculationDetails.push({item: '标的额分段计算', formula: `${amountYuan}元分段累进`, small: calculateTiered(amountYuan, standard.targetRates), note: '标的额10万元以下不足3000元按3000元计'});
+                        specialRules.push('已适用：上海规则，10万以下不足3000按3000计');
+                    } else {
+                        calculationDetails.push({item: '标的额分段计算', formula: `${amountYuan}元分段累进`, small: baseFee});
+                    }
+                }
+            }
+            else if(currentMode === 'time') {
+                const level = document.getElementById('lawyerLevel').value;
+                const hours = parseFloat(document.getElementById('workHours').value) || 0;
+                const rate = standard.time[level];
+                baseFee = hours * rate;
+                calculationDetails.push({item: '计时收费', formula: `${hours}小时 × ${rate}元/时`, small: baseFee, note: `律师级别：${document.getElementById('lawyerLevel').options[document.getElementById('lawyerLevel').selectedIndex].text}`});
+            }
+            else if(currentMode === 'risk') {
+                const riskType = document.getElementById('riskType').value;
+                
+                if(currentProvince === 'henan' && standard.riskDecrease) {
+                    riskFee = calculateTiered(amountYuan, standard.riskDecrease);
+                    calculationDetails.push({item: '河南风险代理（分段递减）', formula: '100万以下18%，100-500万15%，500-1000万12%...', small: riskFee});
+                    specialRules.push('已适用：河南风险代理分段递减规则');
+                }
+                else if(currentProvince === 'sichuan') {
+                    const rate = Math.min(parseFloat(document.getElementById('pureRiskRate')?.value || 18) / 100, standard.riskMax);
+                    riskFee = Math.min(amountYuan * rate, 100000);
+                    calculationDetails.push({item: '四川风险代理（封顶10万）', formula: `${amountYuan}元 × ${(rate*100).toFixed(1)}%`, small: riskFee, note: riskFee >= 100000 ? '已达封顶线10万元' : ''});
+                    specialRules.push('已适用：四川风险代理最高不超过10万元');
+                }
+                else if(riskType === 'prepost') {
+                    const baseRate = parseFloat(document.getElementById('baseFeePercent').value) / 100;
+                    const successRate = parseFloat(document.getElementById('successFeePercent').value) / 100;
+                    baseFee = amountYuan * baseRate;
+                    riskFee = amountYuan * successRate;
+                    calculationDetails.push({item: '风险代理基础费', formula: `${amountYuan}元 × ${(baseRate*100).toFixed(0)}%`, small: baseFee});
+                    calculationDetails.push({item: '风险代理后期费（预估）', formula: `${amountYuan}元 × ${(successRate*100).toFixed(0)}%（若胜诉）`, small: riskFee, note: '实际按回款金额计算'});
+                } else {
+                    const rate = Math.min(parseFloat(document.getElementById('pureRiskRate')?.value || 18) / 100, standard.riskMax);
+                    riskFee = amountYuan * rate;
+                    calculationDetails.push({item: '纯风险代理费', formula: `${amountYuan}元 × ${(rate*100).toFixed(1)}%`, small: riskFee, note: `最高不超过${(standard.riskMax*100).toFixed(0)}%`});
+                }
+            }
+            else if(currentMode === 'mixed') {
+                const hours = parseFloat(document.getElementById('workHours')?.value || 0);
+                const rate = standard.time.intermediate;
+                const timeFee = hours * rate;
+                const targetFee = calculateTiered(amountYuan, standard.targetRates) * 0.5;
+                baseFee = timeFee + targetFee;
+                calculationDetails.push({item: '混合收费（计时）', formula: `${hours}小时 × ${rate}元`, small: timeFee});
+                calculationDetails.push({item: '混合收费（标的50%）', formula: `标的费 × 50%`, small: targetFee});
+            }
+            
+            // Apply minimum fee protection
+            let minFeeApplied = false;
+            if(baseFee < standard.minFee && currentMode !== 'risk') {
+                calculationDetails.push({item: '最低收费保障调整', formula: `${baseFee}元 < ${standard.minFee}元`, small: standard.minFee - baseFee, note: `自动调整至${standard.minFee}元`});
+                baseFee = standard.minFee;
+                minFeeApplied = true;
+            }
+            
+            // Apply complexity multiplier
+            if(complexity > 1) {
+                const adjustedBase = baseFee * complexity;
+                calculationDetails.push({item: `重大疑难案件上浮（${complexity}倍）`, formula: `${baseFee}元 × ${complexity}`, small: adjustedBase - baseFee});
+                baseFee = adjustedBase;
+                specialRules.push(`已适用：重大疑难案件上浮${complexity}倍（福建等省规定最高5倍）`);
+            }
+            
+            // Stage calculations: 一审、二审、再审、执行、反诉、仲裁
+            let stageFees = [];
+            let totalMultiplier = 0;
+            
+            if(stages.first) {
+                stageFees.push({name: '一审/侦查/审查起诉', multiplier: 1.0, fee: baseFee * 1.0});
+                totalMultiplier += 1.0;
+            }
+            if(stages.second) {
+                const secondFee = stages.first ? baseFee * 0.5 : baseFee;
+                stageFees.push({name: '二审', multiplier: stages.first ? 0.5 : 1.0, fee: secondFee, note: stages.first ? '曾代理一审，减半' : '未代理一审，全额'});
+                totalMultiplier += (stages.first ? 0.5 : 1.0);
+            }
+            if(stages.retrial) {
+                stageFees.push({name: '再审', multiplier: 0.5, fee: baseFee * 0.5});
+                totalMultiplier += 0.5;
+            }
+            if(stages.execution) {
+                const execMult = (stages.first || stages.second) ? 0.5 : 1.0;
+                stageFees.push({name: '执行', multiplier: execMult, fee: baseFee * execMult, note: (stages.first || stages.second) ? '已代理诉讼' : '未代理诉讼'});
+                totalMultiplier += execMult;
+            }
+            if(stages.counterclaim) {
+                stageFees.push({name: '反诉', multiplier: 0.5, fee: baseFee * 0.5, note: '与本诉合并'});
+                totalMultiplier += 0.5;
+            }
+            if(stages.arbitration) {
+                stageFees.push({name: '仲裁', multiplier: 1.0, fee: baseFee * 1.0, note: '按仲裁委标准'});
+                totalMultiplier += 1.0;
+            }
+            
+            // Package discount
+            const hasPackage = document.getElementById('packageDiscount').checked;
+            let discountRate = 1.0;
+            if(hasPackage && stageFees.length >= 2) {
+                discountRate = 0.75;
+                calculationDetails.push({item: '多阶段打包优惠（25%）', formula: '原费用 × 0.75', small: -(baseFee * totalMultiplier * 0.25), note: '委托多阶段优惠'});
+            }
+            
+            const totalFee = (baseFee * totalMultiplier + riskFee) * discountRate;
+            
+            displayResults({
+                total: totalFee,
+                base: baseFee,
+                risk: riskFee,
+                complexity: complexity,
+                minFeeApplied,
+                stageFees,
+                calculationDetails,
+                specialRules,
+                standard,
+                totalMultiplier,
+                discountRate
+            });
+        }
+
+        function calculateTiered(amount, tiers) {
+            let fee = 0;
+            let remaining = amount;
+            let prevLimit = 0;
+            
+            for(let tier of tiers) {
+                if(remaining <= 0) break;
+                const limit = tier.limit === Infinity ? Infinity : tier.limit * 10000;
+                const tierAmount = Math.min(remaining, limit - prevLimit);
+                
+                if(tierAmount > 0) {
+                    if(tier.special === 'exempt') {
+                        // Fujian style: no tiered fee for this range
+                    } else {
+                        fee += tierAmount * tier.rate;
+                    }
+                    remaining -= tierAmount;
+                    prevLimit = limit;
+                }
+            }
+            return fee;
+        }
+
+        function displayResults(data) {
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('resultPanel').classList.remove('hidden');
+            
+            document.getElementById('totalFeeArabic').textContent = '¥' + data.total.toLocaleString('zh-CN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('totalFeeChinese').textContent = numberToChinese(data.total);
+            
+            const modeNames = {piece: '计件收费', target: '按标的额比例', time: '计时收费', risk: '风险代理', mixed: '混合收费'};
+            document.getElementById('feeModeTag').textContent = modeNames[currentMode];
+            
+            const standard = data.standard;
+            document.getElementById('minFeeDisplay').textContent = '¥' + standard.minFee.toLocaleString();
+            document.getElementById('maxFeeDisplay').textContent = standard.maxFee ? '¥' + standard.maxFee.toLocaleString() : '不设上限';
+            document.getElementById('stageMultiplierDisplay').textContent = data.totalMultiplier.toFixed(1) + (data.discountRate < 1 ? '（打包优惠后）' : '');
+            
+            const baseContainer = document.getElementById('baseFeeBreakdown');
+            baseContainer.innerHTML = data.calculationDetails.map(d => `
+                <div class="flex justify-between items-center p-2 bg-slate-50 rounded border-l-3 ${d.item.includes('保障') ? 'border-red-400 bg-red-50' : 'border-blue-400'}">
+                    <div>
+                        <div class="font-medium text-slate-700 text-sm">${d.item}</div>
+                        ${d.note ? `<div class="text-xs text-slate-500">${d.note}</div>` : ''}
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold mono-font text-slate-900">${d.small.toLocaleString('zh-CN', {maximumFractionDigits: 0})}元</div>
+                        ${d.formula ? `<div class="text-xs text-slate-500">${d.formula}</div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+            
+            const stageContainer = document.getElementById('stageFeeBreakdown');
+            stageContainer.innerHTML = data.stageFees.map(s => `
+                <div class="flex justify-between items-center p-2 bg-slate-50 rounded border border-slate-200">
+                    <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-full ${s.multiplier < 1 ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'} flex items-center justify-center text-xs font-bold">${s.multiplier}</span>
+                        <div>
+                            <div class="font-medium text-slate-700 text-sm">${s.name}</div>
+                            ${s.note ? `<div class="text-xs text-slate-500">${s.note}</div>` : ''}
+                        </div>
+                    </div>
+                    <div class="font-bold mono-font text-slate-900">${s.fee.toLocaleString('zh-CN', {maximumFractionDigits: 0})}元</div>
+                </div>
+            `).join('');
+            
+            const tableContainer = document.getElementById('calculationTable');
+            tableContainer.innerHTML = data.calculationDetails.map(d => `
+                <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+                    <td class="py-3 px-4 text-slate-700">${d.item}</td>
+                    <td class="py-3 px-4 text-right text-xs text-slate-500">${d.formula || '-'}</td>
+                    <td class="py-3 px-4 text-right font-medium mono-font text-slate-900">${d.small.toLocaleString('zh-CN', {maximumFractionDigits: 0})}</td>
+                    <td class="py-3 px-4 text-right chinese-amount text-sm text-slate-600">${numberToChinese(Math.abs(d.small))}</td>
+                </tr>
+            `).join('') + `
+                <tr class="bg-slate-100 font-bold border-t-2 border-slate-300">
+                    <td class="py-4 px-4 text-slate-900">律师费合计（含税）</td>
+                    <td class="py-4 px-4 text-right text-xs text-slate-600">阶段系数${data.totalMultiplier.toFixed(1)}${data.complexity > 1 ? '×疑难' + data.complexity + '倍' : ''}${data.discountRate < 1 ? '×打包0.75' : ''}</td>
+                    <td class="py-4 px-4 text-right text-lg mono-font text-blue-700 font-bold">¥${data.total.toLocaleString('zh-CN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td class="py-4 px-4 text-right chinese-amount text-blue-900 font-bold">${numberToChinese(data.total)}</td>
+                </tr>
+            `;
+            
+            document.getElementById('specialRulesList').innerHTML = data.specialRules.map(r => `<li>${r}</li>`).join('');
+            
+            const complianceDiv = document.getElementById('complianceCheck');
+            let complianceHtml = '';
+            if(data.minFeeApplied) {
+                complianceHtml += `<div class="flex items-center gap-2 mb-2"><span class="w-2 h-2 bg-amber-500 rounded-full"></span><span class="text-amber-800">已触发最低收费保障（自动调整至${data.standard.minFee}元）</span></div>`;
+            } else {
+                complianceHtml += `<div class="flex items-center gap-2 mb-2"><span class="w-2 h-2 bg-emerald-500 rounded-full"></span><span>计算结果符合政府指导价范围</span></div>`;
+            }
+            if(data.standard.maxFee && data.total > data.standard.maxFee) {
+                complianceHtml += `<div class="flex items-center gap-2 text-red-600"><span class="w-2 h-2 bg-red-500 rounded-full"></span><span>警告：超过政府指导价上限${data.standard.maxFee}元，建议调整</span></div>`;
+            } else {
+                complianceHtml += `<div class="flex items-center gap-2"><span class="w-2 h-2 bg-emerald-500 rounded-full"></span><span>未超过政府指导价上限</span></div>`;
+            }
+            complianceDiv.innerHTML = complianceHtml;
+        }
+
+        function showProhibitionNotice() {
+            alert('根据《律师服务收费管理办法》第十一条、第十二条：\n\n禁止刑事诉讼案件、行政诉讼案件、国家赔偿案件、群体性诉讼案件、婚姻继承案件，以及请求给予社会保险待遇、最低生活保障待遇、请求支付劳动报酬、工伤赔偿的案件实行风险代理收费。\n\n违反规定的，由价格主管部门或司法行政部门责令改正，并处罚款。');
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            const colors = type === 'error' ? 'bg-red-500' : (type === 'warning' ? 'bg-amber-500' : 'bg-blue-500');
+            toast.className = `fixed top-20 right-4 ${colors} text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2`;
+            toast.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Initialize
+        updateCaseType();
+        changeProvince();
+    </script>
+</body>
+</html>
