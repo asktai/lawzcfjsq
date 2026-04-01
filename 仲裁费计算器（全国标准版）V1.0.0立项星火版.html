@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>仲裁费计算器（全国标准版）V1.0.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+            min-height: 100vh;
+        }
+        .court-font {
+            font-family: 'Noto Serif SC', serif;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .arbitration-gradient {
+            background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+        }
+        .fee-breakdown {
+            transition: all 0.3s ease;
+        }
+        .fee-breakdown:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .region-card {
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        .region-card:hover {
+            border-color: #059669;
+            background: #f0fdf4;
+        }
+        .region-card.selected {
+            border-color: #059669;
+            background: #ecfdf5;
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+        }
+        .input-focus:focus {
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+            border-color: #059669;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .tab-active {
+            border-bottom: 3px solid #059669;
+            color: #059669;
+            font-weight: 600;
+        }
+        .tier-row:nth-child(even) {
+            background: #f8fafc;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- Header -->
+    <header class="arbitration-gradient text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold court-font tracking-wide">仲裁费计算器</h1>
+                    <p class="text-xs text-emerald-100 opacity-90">支持全国主要仲裁机构收费标准</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button onclick="window.print()" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg text-sm font-medium transition backdrop-blur-sm">
+                    打印结果
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        
+        <!-- Type Switcher -->
+        <div class="glass-panel rounded-xl shadow-lg p-2 mb-6 flex gap-2">
+            <button onclick="switchType('commercial')" id="tabCommercial" class="flex-1 py-3 px-4 rounded-lg text-center font-medium transition tab-active bg-emerald-50/50">
+                <div class="flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                    商事仲裁
+                </div>
+                <div class="text-xs font-normal mt-1 opacity-70">受理费+处理费分段计收</div>
+            </button>
+            <button onclick="switchType('labor')" id="tabLabor" class="flex-1 py-3 px-4 rounded-lg text-center font-medium transition text-slate-600 hover:bg-slate-50">
+                <div class="flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    劳动仲裁
+                </div>
+                <div class="text-xs font-normal mt-1 opacity-70">《劳动争议调解仲裁法》第53条</div>
+            </button>
+        </div>
+
+        <!-- Commercial Arbitration Section -->
+        <div id="commercialSection" class="animate-fade-in">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <!-- Left: Region Selection -->
+                <div class="lg:col-span-4 space-y-4">
+                    <div class="glass-panel rounded-xl shadow-lg p-6">
+                        <h3 class="font-bold text-slate-800 mb-4 flex items-center court-font text-lg">
+                            <span class="w-8 h-8 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mr-2 text-sm">1</span>
+                            选择仲裁机构
+                        </h3>
+                        
+                        <div class="space-y-3" id="regionList">
+                            <!-- Beijing Arbitration Commission -->
+                            <div class="region-card selected p-4 rounded-lg border border-slate-200 cursor-pointer bg-white" onclick="selectRegion('beijing', this)">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <div class="font-bold text-slate-800">北京仲裁委员会</div>
+                                        <div class="text-xs text-slate-500 mt-1">北仲 (BAC)</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-xs text-emerald-600 font-medium">2019年9月标准</div>
+                                    </div>
+                                </div>
+                                <div class="mt-2 text-xs text-slate-500">
+                                    受理费：争议金额×比例（最低200元）<br>
+                                    处理费：固定9000元或按比例
+                                </div>
+                            </div>
+
+                            <!-- Shanghai Arbitration Commission -->
+                            <div class="region-card p-4 rounded-lg border border-slate-200 cursor-pointer bg-white" onclick="selectRegion('shanghai', this)">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <div class="font-bold text-slate-800">上海仲裁委员会</div>
+                                        <div class="text-xs text-slate-500 mt-1">上仲 (SHAC)</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-xs text-emerald-600 font-medium">2024年3月标准</div>
+                                    </div>
+                                </div>
+                                <div class="mt-2 text-xs text-slate-500">
+                                    受理费：分段累计（最高33.1万元封顶）<br>
+                                    处理费：按比例收取
+                                </div>
+                            </div>
+
+                            <!-- CIETAC -->
+                            <div class="region-card p-4 rounded-lg border border-slate-200 cursor-pointer bg-white" onclick="selectRegion('cietac', this)">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <div class="font-bold text-slate-800">中国国际经济贸易仲裁委员会</div>
+                                        <div class="text-xs text-slate-500 mt-1">贸仲 (CIETAC)</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-xs text-emerald-600 font-medium">2024年标准</div>
+                                    </div>
+                                </div>
+                                <div class="mt-2 text-xs text-slate-500">
+                                    受理费：分段累计（最高30.35万元封顶）<br>
+                                    处理费：按比例（最高51.76万元封顶）
+                                </div>
+                            </div>
+
+                            <!-- Shenzhen -->
+                            <div class="region-card p-4 rounded-lg border border-slate-200 cursor-pointer bg-white" onclick="selectRegion('shenzhen', this)">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <div class="font-bold text-slate-800">深圳国际仲裁院</div>
+                                        <div class="text-xs text-slate-500 mt-1">深国仲 (SCIA)</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-xs text-emerald-600 font-medium">2024年标准</div>
+                                    </div>
+                                </div>
+                                <div class="mt-2 text-xs text-slate-500">
+                                    受理费：分段累计（最高30.35万元）<br>
+                                    处理费：按比例（最高51.76万元）
+                                </div>
+                            </div>
+
+                            <!-- Guangzhou -->
+                            <div class="region-card p-4 rounded-lg border border-slate-200 cursor-pointer bg-white" onclick="selectRegion('guangzhou', this)">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <div class="font-bold text-slate-800">广州仲裁委员会</div>
+                                        <div class="text-xs text-slate-500 mt-1">广仲 (GZAC)</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-xs text-emerald-600 font-medium">2024年3月标准</div>
+                                    </div>
+                                </div>
+                                <div class="mt-2 text-xs text-slate-500">
+                                    受理费：分段累计（最高33.1万元）<br>
+                                    处理费：按比例收取
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-slate-200">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="applyDiscount" class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500" onchange="calculateCommercial()">
+                                <span class="text-sm text-slate-700">适用预交优惠（如有）</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Input Section -->
+                    <div class="glass-panel rounded-xl shadow-lg p-6">
+                        <h3 class="font-bold text-slate-800 mb-4 flex items-center court-font text-lg">
+                            <span class="w-8 h-8 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mr-2 text-sm">2</span>
+                            争议金额
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">争议标的额（元）</label>
+                                <div class="relative">
+                                    <input type="number" id="commercialAmount" class="input-focus w-full px-4 py-3 rounded-lg border border-slate-300 text-lg font-medium" 
+                                        placeholder="请输入争议标的金额" min="0" step="1" oninput="calculateCommercial()">
+                                    <span class="absolute right-4 top-3.5 text-slate-400 text-sm">元</span>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-1">包括本金、利息、违约金、仲裁请求所涉全部金额</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">案件类型</label>
+                                <select id="caseType" class="input-focus w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white" onchange="calculateCommercial()">
+                                    <option value="normal">普通商事案件</option>
+                                    <option value="finance">金融案件（部分机构优惠）</option>
+                                    <option value="internet">互联网仲裁（部分机构特殊标准）</option>
+                                    <option value="construction">建设工程（可能涉及鉴定费另计）</option>
+                                </select>
+                            </div>
+
+                            <button onclick="calculateCommercial()" class="btn-primary w-full text-white font-semibold py-3 rounded-lg shadow-md flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                计算仲裁费
+                            </button>
+
+                            <button onclick="resetCommercial()" class="w-full py-2 border border-slate-300 text-slate-600 rounded-lg hover:bg-slate-50 transition text-sm font-medium">
+                                重置
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Middle: Results -->
+                <div class="lg:col-span-5">
+                    <div id="commercialEmpty" class="glass-panel rounded-xl shadow-lg p-12 text-center h-full flex flex-col justify-center">
+                        <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-medium text-slate-700 mb-2">等待计算</h3>
+                        <p class="text-slate-500 text-sm">请选择仲裁机构并输入争议金额</p>
+                    </div>
+
+                    <div id="commercialResult" class="hidden glass-panel rounded-xl shadow-lg p-6 animate-fade-in">
+                        <h3 class="font-bold text-slate-800 mb-6 flex items-center court-font text-lg">
+                            <span class="w-8 h-8 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mr-2 text-sm">3</span>
+                            费用计算结果
+                        </h3>
+
+                        <!-- Total -->
+                        <div class="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-xl p-6 text-white mb-6 shadow-lg">
+                            <div class="text-emerald-100 text-sm mb-1">仲裁费用总额</div>
+                            <div class="text-4xl font-bold court-font tracking-wide flex items-baseline gap-2">
+                                <span id="commercialTotal">0</span>
+                                <span class="text-lg">元</span>
+                            </div>
+                            <div class="mt-3 pt-3 border-t border-white/20 text-sm text-emerald-100 flex justify-between">
+                                <span>争议金额：<span id="commercialDisplayAmount">0</span> 元</span>
+                                <span id="arbitratorCount">1名仲裁员</span>
+                            </div>
+                        </div>
+
+                        <!-- Breakdown -->
+                        <div class="space-y-4">
+                            <!-- Acceptance Fee -->
+                            <div class="fee-breakdown p-4 rounded-lg border border-slate-200 bg-white">
+                                <div class="flex justify-between items-center mb-3">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-sm font-bold">受</div>
+                                        <div>
+                                            <div class="font-bold text-slate-800">仲裁受理费</div>
+                                            <div class="text-xs text-slate-500">案件受理手续费</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-2xl font-bold text-blue-700 court-font" id="acceptanceFee">0</div>
+                                        <div class="text-xs text-slate-500">元</div>
+                                    </div>
+                                </div>
+                                <div id="acceptanceBreakdown" class="text-sm text-slate-600 space-y-1 border-t border-slate-100 pt-2">
+                                    <!-- Dynamic content -->
+                                </div>
+                            </div>
+
+                            <!-- Processing Fee -->
+                            <div class="fee-breakdown p-4 rounded-lg border border-slate-200 bg-white">
+                                <div class="flex justify-between items-center mb-3">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-8 h-8 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center text-sm font-bold">处</div>
+                                        <div>
+                                            <div class="font-bold text-slate-800">仲裁处理费</div>
+                                            <div class="text-xs text-slate-500">案件处理实际开支</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-2xl font-bold text-purple-700 court-font" id="processingFee">0</div>
+                                        <div class="text-xs text-slate-500">元</div>
+                                    </div>
+                                </div>
+                                <div id="processingBreakdown" class="text-sm text-slate-600 space-y-1 border-t border-slate-100 pt-2">
+                                    <!-- Dynamic content -->
+                                </div>
+                            </div>
+
+                            <!-- Other Fees -->
+                            <div class="p-4 rounded-lg bg-amber-50 border border-amber-200">
+                                <h4 class="font-bold text-amber-900 mb-2 flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    可能产生的其他费用
+                                </h4>
+                                <ul class="text-sm text-amber-800 space-y-1 list-disc list-inside" id="otherFees">
+                                    <li>鉴定费、审计费、评估费（按实际发生）</li>
+                                    <li>律师费（根据委托合同约定）</li>
+                                    <li>财产保全费（向法院交纳）</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Standards -->
+                <div class="lg:col-span-3 space-y-4">
+                    <div class="glass-panel rounded-xl shadow-sm p-5">
+                        <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            当前机构标准
+                        </h3>
+                        <div id="standardDisplay" class="space-y-3 text-sm">
+                            <div class="p-3 bg-slate-50 rounded border border-slate-200">
+                                <div class="font-semibold text-slate-800 mb-2">北京仲裁委员会 (BAC)</div>
+                                <div class="space-y-1 text-xs text-slate-600">
+                                    <div class="flex justify-between">
+                                        <span>≤25万</span>
+                                        <span>受理费：争议额×5%（最低200元）</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>处理费</span>
+                                        <span>固定9000元或按比例</span>
+                                    </div>
+                                    <div class="mt-2 pt-2 border-t border-slate-200 text-emerald-700 font-medium">
+                                        点击查看详细阶梯表 →
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel rounded-xl shadow-sm p-5 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+                        <h3 class="font-bold text-blue-900 mb-3">仲裁 vs 诉讼对比</h3>
+                        <div class="space-y-3 text-xs text-blue-800">
+                            <div class="flex justify-between items-center p-2 bg-white/50 rounded">
+                                <span>一裁终局</span>
+                                <span class="text-emerald-600 font-bold">✓ 节省时间</span>
+                            </div>
+                            <div class="flex justify-between items-center p-2 bg-white/50 rounded">
+                                <span>保密性</span>
+                                <span class="text-emerald-600 font-bold">✓ 不公开审理</span>
+                            </div>
+                            <div class="flex justify-between items-center p-2 bg-white/50 rounded">
+                                <span>专家断案</span>
+                                <span class="text-emerald-600 font-bold">✓ 可选专家仲裁员</span>
+                            </div>
+                            <div class="flex justify-between items-center p-2 bg-white/50 rounded">
+                                <span>费用</span>
+                                <span class="text-amber-600 font-bold">通常高于诉讼</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel rounded-xl shadow-sm p-5">
+                        <h3 class="font-bold text-slate-700 mb-3">注意事项</h3>
+                        <ul class="space-y-2 text-xs text-slate-600 list-disc list-inside">
+                            <li>仲裁费用原则上由败诉方承担</li>
+                            <li>部分胜诉部分败诉的，按责任比例分担</li>
+                            <li>调解结案的，可退回部分费用</li>
+                            <li>撤诉的，视阶段退回50%-80%</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Labor Arbitration Section (Free) -->
+        <div id="laborSection" class="hidden animate-fade-in">
+            <div class="glass-panel rounded-xl shadow-lg p-12 max-w-3xl mx-auto text-center">
+                <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                
+                <h2 class="text-2xl font-bold text-slate-800 mb-4 court-font">劳动仲裁不收费</h2>
+                
+                <div class="highlight-box rounded-lg p-6 mb-6 text-left">
+                    <h3 class="font-bold text-amber-900 mb-2 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        法律依据
+                    </h3>
+                    <p class="text-amber-900 text-sm leading-relaxed mb-3">
+                        《中华人民共和国劳动争议调解仲裁法》<strong>第五十三条</strong>规定：
+                    </p>
+                    <p class="text-amber-800 text-sm leading-relaxed italic border-l-4 border-amber-500 pl-4">
+                        "劳动争议仲裁<strong>不收费</strong>。劳动争议仲裁委员会的经费由财政予以保障。"
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-left">
+                    <div class="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                        <h4 class="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            免费范围
+                        </h4>
+                        <ul class="text-sm text-slate-600 space-y-1 list-disc list-inside">
+                            <li>确认劳动关系</li>
+                            <li>工资、加班费争议</li>
+                            <li>经济补偿金、赔偿金</li>
+                            <li>工伤医疗费、补助金</li>
+                            <li>社会保险争议</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                        <h4 class="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            可能产生的费用
+                        </h4>
+                        <ul class="text-sm text-slate-600 space-y-1 list-disc list-inside">
+                            <li>律师代理费（如委托律师）</li>
+                            <li>鉴定费（笔迹、工伤等级等）</li>
+                            <li>法院诉讼费（如不服仲裁起诉）</li>
+                            <li>复印、交通等实际开支</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 justify-center">
+                    <button onclick="switchType('commercial')" class="px-6 py-3 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"/>
+                        </svg>
+                        返回商事仲裁计算
+                    </button>
+                    <button onclick="alert('功能提示：此处可链接至劳动仲裁申请书模板或劳动仲裁指南')" class="px-6 py-3 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition">
+                        查看劳动仲裁指南
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentRegion = 'beijing';
+
+        // Standards database
+        const regionStandards = {
+            beijing: {
+                name: '北京仲裁委员会 (BAC)',
+                standard: '2019年9月标准',
+                acceptance: {
+                    tiers: [
+                        {limit: 250000, rate: 0.05, min: 200}, // 25万以下：5%，最低200
+                        {limit: 500000, rate: 0.04, base: 250000}, // 25-50万：超过25万部分4%
+                        {limit: 1000000, rate: 0.03, base: 500000}, // 50-100万：超过50万部分3%
+                        {limit: 3000000, rate: 0.02, base: 1000000}, // 100-300万：超过100万部分2%
+                        {limit: 5000000, rate: 0.015, base: 3000000}, // 300-500万：超过300万部分1.5%
+                        {limit: 10000000, rate: 0.01, base: 5000000}, // 500-1000万：超过500万部分1%
+                        {limit: 50000000, rate: 0.005, base: 10000000}, // 1000-5000万：超过1000万部分0.5%
+                        {limit: Infinity, rate: 0.003, base: 50000000} // 5000万以上：超过5000万部分0.3%
+                    ],
+                    cap: null // 无封顶
+                },
+                processing: {
+                    type: 'hybrid', // 混合：低额固定，高额比例
+                    fixed: 9000, // 25万以下固定9000
+                    fixedThreshold: 250000,
+                    tiers: [
+                        {limit: 500000, rate: 0.02, base: 250000}, // 25-50万：超过25万部分2%
+                        {limit: 1000000, rate: 0.015, base: 500000}, // 50-100万：超过50万部分1.5%
+                        {limit: 3000000, rate: 0.01, base: 1000000}, // 100-300万：超过100万部分1%
+                        {limit: 6000000, rate: 0.005, base: 3000000}, // 300-600万：超过300万部分0.5%
+                        {limit: Infinity, rate: 0.0025, base: 6000000} // 600万以上：超过600万部分0.25%
+                    ]
+                }
+            },
+            shanghai: {
+                name: '上海仲裁委员会 (SHAC)',
+                standard: '2024年3月标准',
+                acceptance: {
+                    tiers: [
+                        {limit: 100000, baseFee: 2000, rate: 0}, // 10万以下：2000元
+                        {limit: 500000, rate: 0.035, base: 100000, baseFee: 2000}, // 10-50万：3.5%
+                        {limit: 1000000, rate: 0.025, base: 500000}, // 50-100万：2.5%
+                        {limit: 5000000, rate: 0.015, base: 1000000}, // 100-500万：1.5%
+                        {limit: 10000000, rate: 0.008, base: 5000000}, // 500-1000万：0.8%
+                        {limit: 50000000, rate: 0.006, base: 10000000}, // 1000-5000万：0.6%
+                        {limit: Infinity, rate: 0.004, base: 50000000} // 5000万以上：0.4%
+                    ],
+                    cap: 331000 // 33.1万封顶
+                },
+                processing: {
+                    type: 'percentage',
+                    tiers: [
+                        {limit: 1000000, rate: 0.02}, // 100万以下：2%
+                        {limit: 5000000, rate: 0.015}, // 100-500万：1.5%
+                        {limit: 10000000, rate: 0.01}, // 500-1000万：1%
+                        {limit: Infinity, rate: 0.005} // 1000万以上：0.5%
+                    ]
+                }
+            },
+            cietac: {
+                name: '中国国际经济贸易仲裁委员会 (CIETAC)',
+                standard: '2024年标准',
+                acceptance: {
+                    tiers: [
+                        {limit: 1000000, fee: 19610}, // 100万以下：固定19610元（估算）
+                        {limit: 5000000, rate: 0.0064, base: 1000000, baseFee: 19610}, // 100-500万：0.64%
+                        {limit: 10000000, rate: 0.005, base: 5000000}, // 500-1000万：0.5%
+                        {limit: 50000000, rate: 0.004, base: 10000000}, // 1000-5000万：0.4%
+                        {limit: 100000000, rate: 0.003, base: 50000000}, // 5000万-1亿：0.3%
+                        {limit: 200000000, rate: 0.002, base: 100000000}, // 1-2亿：0.2%
+                        {limit: 400000000, rate: 0.0015, base: 200000000}, // 2-4亿：0.15%
+                        {limit: Infinity, rate: 0.0008, base: 400000000} // 4亿以上：0.08%
+                    ],
+                    cap: 303500 // 30.35万封顶
+                },
+                processing: {
+                    type: 'percentage',
+                    tiers: [
+                        {limit: 1000000, rate: 0.045}, // 100万以下：4.5%
+                        {limit: 5000000, rate: 0.035}, // 100-500万：3.5%
+                        {limit: 10000000, rate: 0.025}, // 500-1000万：2.5%
+                        {limit: 50000000, rate: 0.018}, // 1000-5000万：1.8%
+                        {limit: 100000000, rate: 0.012}, // 5000万-1亿：1.2%
+                        {limit: 200000000, rate: 0.008}, // 1-2亿：0.8%
+                        {limit: 400000000, rate: 0.006}, // 2-4亿：0.6%
+                        {limit: Infinity, rate: 0.004} // 4亿以上：0.4%
+                    ],
+                    cap: 517600 // 51.76万封顶
+                }
+            },
+            shenzhen: {
+                name: '深圳国际仲裁院 (SCIA)',
+                standard: '2024年标准',
+                // Similar to CIETAC for international cases
+                acceptance: {
+                    tiers: [
+                        {limit: 1000000, fee: 19610},
+                        {limit: 5000000, rate: 0.0064, base: 1000000, baseFee: 19610},
+                        {limit: 10000000, rate: 0.005, base: 5000000},
+                        {limit: 50000000, rate: 0.004, base: 10000000},
+                        {limit: 100000000, rate: 0.003, base: 50000000},
+                        {limit: Infinity, rate: 0.002, base: 100000000}
+                    ],
+                    cap: 303500
+                },
+                processing: {
+                    type: 'percentage',
+                    tiers: [
+                        {limit: 1000000, rate: 0.045},
+                        {limit: 5000000, rate: 0.035},
+                        {limit: 10000000, rate: 0.025},
+                        {limit: 50000000, rate: 0.018},
+                        {limit: Infinity, rate: 0.012}
+                    ],
+                    cap: 517600
+                }
+            },
+            guangzhou: {
+                name: '广州仲裁委员会 (GZAC)',
+                standard: '2024年3月标准',
+                // Similar to Shanghai
+                acceptance: {
+                    tiers: [
+                        {limit: 100000, baseFee: 2000, rate: 0},
+                        {limit: 500000, rate: 0.035, base: 100000, baseFee: 2000},
+                        {limit: 1000000, rate: 0.025, base: 500000},
+                        {limit: 5000000, rate: 0.015, base: 1000000},
+                        {limit: 10000000, rate: 0.008, base: 5000000},
+                        {limit: 50000000, rate: 0.006, base: 10000000},
+                        {limit: Infinity, rate: 0.004, base: 50000000}
+                    ],
+                    cap: 331000
+                },
+                processing: {
+                    type: 'percentage',
+                    tiers: [
+                        {limit: 1000000, rate: 0.02},
+                        {limit: 5000000, rate: 0.015},
+                        {limit: 10000000, rate: 0.01},
+                        {limit: Infinity, rate: 0.005}
+                    ]
+                }
+            }
+        };
+
+        function switchType(type) {
+            const commercialTab = document.getElementById('tabCommercial');
+            const laborTab = document.getElementById('tabLabor');
+            const commercialSection = document.getElementById('commercialSection');
+            const laborSection = document.getElementById('laborSection');
+
+            if(type === 'commercial') {
+                commercialTab.classList.add('tab-active', 'bg-emerald-50/50');
+                commercialTab.classList.remove('text-slate-600');
+                laborTab.classList.remove('tab-active', 'bg-emerald-50/50');
+                laborTab.classList.add('text-slate-600');
+                
+                commercialSection.classList.remove('hidden');
+                laborSection.classList.add('hidden');
+            } else {
+                laborTab.classList.add('tab-active', 'bg-emerald-50/50');
+                laborTab.classList.remove('text-slate-600');
+                commercialTab.classList.remove('tab-active', 'bg-emerald-50/50');
+                commercialTab.classList.add('text-slate-600');
+                
+                laborSection.classList.remove('hidden');
+                commercialSection.classList.add('hidden');
+            }
+        }
+
+        function selectRegion(region, element) {
+            // Update UI
+            document.querySelectorAll('.region-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            
+            currentRegion = region;
+            
+            // Update standard display
+            updateStandardDisplay(region);
+            
+            // Recalculate if amount exists
+            const amount = document.getElementById('commercialAmount').value;
+            if(amount) calculateCommercial();
+        }
+
+        function updateStandardDisplay(region) {
+            const standard = regionStandards[region];
+            const container = document.getElementById('standardDisplay');
+            
+            let html = `
+                <div class="p-3 bg-slate-50 rounded border border-slate-200">
+                    <div class="font-semibold text-slate-800 mb-2">${standard.name}</div>
+                    <div class="space-y-1 text-xs text-slate-600">
+            `;
+            
+            // Show first few tiers
+            standard.acceptance.tiers.slice(0, 3).forEach((tier, idx) => {
+                if(idx === 0) {
+                    html += `<div class="flex justify-between"><span>≤${(tier.limit/10000).toFixed(0)}万</span><span>${tier.rate ? '比例'+ (tier.rate*100) +'%' : '固定'+tier.fee+'元'}</span></div>`;
+                } else {
+                    html += `<div class="flex justify-between"><span>${(standard.acceptance.tiers[idx-1].limit/10000).toFixed(0)}-${(tier.limit/10000).toFixed(0)}万</span><span>${(tier.rate*100).toFixed(1)}%</span></div>`;
+                }
+            });
+            
+            if(standard.acceptance.cap) {
+                html += `<div class="mt-2 text-emerald-700 font-medium">受理费封顶：${standard.acceptance.cap.toLocaleString()}元</div>`;
+            }
+            
+            html += `</div></div>`;
+            container.innerHTML = html;
+        }
+
+        function calculateCommercial() {
+            const amount = parseFloat(document.getElementById('commercialAmount').value) || 0;
+            if(amount <= 0) {
+                document.getElementById('commercialEmpty').classList.remove('hidden');
+                document.getElementById('commercialResult').classList.add('hidden');
+                return;
+            }
+
+            const standard = regionStandards[currentRegion];
+            
+            // Calculate Acceptance Fee
+            let acceptanceFee = 0;
+            let acceptanceBreakdown = [];
+            
+            if(standard.acceptance.tiers[0].fee !== undefined && amount <= standard.acceptance.tiers[0].limit) {
+                // Fixed fee for small amounts
+                acceptanceFee = standard.acceptance.tiers[0].fee;
+                acceptanceBreakdown.push(`争议金额≤${(standard.acceptance.tiers[0].limit/10000).toFixed(0)}万元：固定收费${acceptanceFee}元`);
+            } else {
+                // Progressive calculation
+                let remaining = amount;
+                let previousLimit = 0;
+                
+                for(let tier of standard.acceptance.tiers) {
+                    if(remaining <= 0) break;
+                    
+                    const tierAmount = Math.min(remaining, tier.limit - previousLimit);
+                    if(tierAmount > 0) {
+                        let tierFee = 0;
+                        if(tier.fee !== undefined && previousLimit === 0) {
+                            tierFee = tier.fee + (tierAmount - (tier.base || 0)) * tier.rate;
+                        } else if(tier.baseFee !== undefined) {
+                            tierFee = tier.baseFee + (tierAmount - (tier.base || 0)) * tier.rate;
+                        } else {
+                            tierFee = tierAmount * tier.rate;
+                        }
+                        
+                        if(tierFee > 0) {
+                            acceptanceFee += tierFee;
+                            acceptanceBreakdown.push(`${(previousLimit/10000).toFixed(0)}-${((previousLimit + tierAmount)/10000).toFixed(0)}万部分：${tierAmount.toLocaleString()}×${(tier.rate*100).toFixed(2)}%=${tierFee.toFixed(2)}元`);
+                        }
+                        remaining -= tierAmount;
+                        previousLimit = tier.limit;
+                    }
+                }
+            }
+            
+            // Apply cap if exists
+            if(standard.acceptance.cap && acceptanceFee > standard.acceptance.cap) {
+                acceptanceFee = standard.acceptance.cap;
+                acceptanceBreakdown.push(`（已达封顶金额${standard.acceptance.cap.toLocaleString()}元）`);
+            }
+
+            // Calculate Processing Fee
+            let processingFee = 0;
+            let processingBreakdown = [];
+            
+            if(standard.processing.type === 'hybrid') {
+                if(amount <= standard.processing.fixedThreshold) {
+                    processingFee = standard.processing.fixed;
+                    processingBreakdown.push(`争议金额≤${(standard.processing.fixedThreshold/10000).toFixed(0)}万元：固定${processingFee}元`);
+                } else {
+                    processingFee = standard.processing.fixed;
+                    let remaining = amount - standard.processing.fixedThreshold;
+                    let previousLimit = standard.processing.fixedThreshold;
+                    
+                    for(let tier of standard.processing.tiers) {
+                        if(remaining <= 0) break;
+                        const tierAmount = Math.min(remaining, tier.limit - previousLimit);
+                        if(tierAmount > 0) {
+                            const tierFee = tierAmount * tier.rate;
+                            processingFee += tierFee;
+                            processingBreakdown.push(`超过${(previousLimit/10000).toFixed(0)}万部分：${tierAmount.toLocaleString()}×${(tier.rate*100).toFixed(2)}%=${tierFee.toFixed(2)}元`);
+                            remaining -= tierAmount;
+                            previousLimit = tier.limit;
+                        }
+                    }
+                }
+            } else {
+                // Pure percentage
+                let remaining = amount;
+                let previousLimit = 0;
+                
+                for(let tier of standard.processing.tiers) {
+                    if(remaining <= 0) break;
+                    const tierAmount = Math.min(remaining, tier.limit - previousLimit);
+                    if(tierAmount > 0) {
+                        const tierFee = tierAmount * tier.rate;
+                        processingFee += tierFee;
+                        processingBreakdown.push(`${(previousLimit/10000).toFixed(0)}-${((previousLimit + tierAmount)/10000).toFixed(0)}万部分：${tierAmount.toLocaleString()}×${(tier.rate*100).toFixed(2)}%=${tierFee.toFixed(2)}元`);
+                        remaining -= tierAmount;
+                        previousLimit = tier.limit;
+                    }
+                }
+            }
+            
+            if(standard.processing.cap && processingFee > standard.processing.cap) {
+                processingFee = standard.processing.cap;
+                processingBreakdown.push(`（已达封顶金额${standard.processing.cap.toLocaleString()}元）`);
+            }
+
+            const total = acceptanceFee + processingFee;
+            
+            // Display results
+            document.getElementById('commercialEmpty').classList.add('hidden');
+            document.getElementById('commercialResult').classList.remove('hidden');
+            
+            document.getElementById('commercialTotal').textContent = total.toLocaleString('zh-CN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('commercialDisplayAmount').textContent = amount.toLocaleString();
+            document.getElementById('acceptanceFee').textContent = acceptanceFee.toLocaleString('zh-CN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('processingFee').textContent = processingFee.toLocaleString('zh-CN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            
+            // Update breakdowns
+            document.getElementById('acceptanceBreakdown').innerHTML = acceptanceBreakdown.map(item => `<div class="text-xs text-slate-500">${item}</div>`).join('');
+            document.getElementById('processingBreakdown').innerHTML = processingBreakdown.map(item => `<div class="text-xs text-slate-500">${item}</div>`).join('');
+            
+            // Update other fees note
+            const caseType = document.getElementById('caseType').value;
+            let otherFees = ['鉴定费、审计费、评估费（按实际发生）', '律师费（根据委托合同约定）'];
+            if(caseType === 'construction') {
+                otherFees.push('工程造价鉴定费（通常较高，建议预算）');
+            }
+            if(caseType === 'finance') {
+                otherFees.push('财产保全费（向法院交纳）');
+            }
+            document.getElementById('otherFees').innerHTML = otherFees.map(fee => `<li>${fee}</li>`).join('');
+        }
+
+        function resetCommercial() {
+            document.getElementById('commercialAmount').value = '';
+            document.getElementById('caseType').value = 'normal';
+            document.getElementById('commercialEmpty').classList.remove('hidden');
+            document.getElementById('commercialResult').classList.add('hidden');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStandardDisplay('beijing');
+        });
+    </script>
+</body>
+</html>
